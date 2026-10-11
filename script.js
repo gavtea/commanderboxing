@@ -43,10 +43,10 @@ window.onload = async () => {
 
 function setToState(event) {
       let buttonValues = [`boxing`, `sealed`, `singles`];
-      currentState = buttonValues.indexOf(event.target.id.replace("Button",""));
+      currentState = buttonValues.indexOf(event.target.id.replace("Button", ""));
       Array.from(document.getElementsByClassName(`bottom-element`)).forEach((element) => {
             element.classList.remove(`hidden-element`);
-            if(element.id == event.target.id.replace("Button","")) {
+            if (element.id == event.target.id.replace("Button", "")) {
                   element.classList.add(`hidden-element`);
             }
       });
@@ -71,7 +71,7 @@ async function customPack(customSetID) {
       var cardOptions = await getData(`./customPacks/UnlineCards.json`);
       const allSets = cardOptions.allCards.map(item => item["set"]);
       const uniqueSets = new Set(allSets);
-      for(setID of uniqueSets) {
+      for (setID of uniqueSets) {
             customCardDatabase[setID] = await getData(`https://mtgjson.com/api/v5/${setID}.json`);
             altDatabases.push(customCardDatabase[setID]);
       }
@@ -181,7 +181,7 @@ async function customPack(customSetID) {
       }
 
       var sheetData = {};
-      for(key of Object.keys(boosterSlots)) {
+      for (key of Object.keys(boosterSlots)) {
             sheetData[key] = {
                   "cards": {},
                   "totalWeight": 0
@@ -189,25 +189,25 @@ async function customPack(customSetID) {
       }
 
       var allUUIDs = {};
-      for(key of Object.keys(customCardDatabase)) {
+      for (key of Object.keys(customCardDatabase)) {
             allUUIDs[key] = [];
       }
-      for(cardInfo of cardOptions.allCards) {
+      for (cardInfo of cardOptions.allCards) {
             let allResults = customCardDatabase[cardInfo.set].data.cards.filter((card) => {
-                  if(/^\d+$/.test(cardInfo.number)) {
+                  if (/^\d+$/.test(cardInfo.number)) {
                         return card.number.replace(/[a-z]/gi, '') == cardInfo.number;
                   } else {
                         return card.number == cardInfo.number;
                   }
-                  
+
             });
-            if(!customCardDatabase[cardInfo.set].data.booster) {
-                  for(result of allResults) {
+            if (!customCardDatabase[cardInfo.set].data.booster) {
+                  for (result of allResults) {
                         let sheetID;
-                        if(cardInfo.set == "SUNF") {
+                        if (cardInfo.set == "SUNF") {
                               sheetID = "sticker";
                         } else {
-                              sheetID = Object.keys(boosterSlots).find(sheetName => 
+                              sheetID = Object.keys(boosterSlots).find(sheetName =>
                                     Object.keys(boosterSlots[sheetName]).includes(result.rarity)
                               );
                         }
@@ -215,36 +215,36 @@ async function customPack(customSetID) {
                         sheetData[sheetID].totalWeight += 1;
                   }
             } else {
-                  for(result of allResults) {
+                  for (result of allResults) {
                         allUUIDs[cardInfo.set].push(result.uuid);
                   }
             }
       }
 
-      for([cardSet, UUIDData] of Object.entries(allUUIDs)) {
-            if(!UUIDData.length) {
+      for ([cardSet, UUIDData] of Object.entries(allUUIDs)) {
+            if (!UUIDData.length) {
                   continue;
             }
-            for(uuid of UUIDData) {
+            for (uuid of UUIDData) {
                   let allPossibleSheets = [];
-                  for(sheetName in customCardDatabase[cardSet].data.booster.draft.sheets) {
-                        if(Object.keys(customCardDatabase[cardSet].data.booster.draft.sheets[sheetName].cards).includes(uuid)) {
+                  for (sheetName in customCardDatabase[cardSet].data.booster.draft.sheets) {
+                        if (Object.keys(customCardDatabase[cardSet].data.booster.draft.sheets[sheetName].cards).includes(uuid)) {
                               allPossibleSheets.push(sheetName);
                         }
                   }
-                  if(!allPossibleSheets.length) {
+                  if (!allPossibleSheets.length) {
                         continue;
                   }
-                  for(originalSheet of allPossibleSheets) {
-                        const sheetID = Object.keys(boosterSlots).find(sheetName => 
+                  for (originalSheet of allPossibleSheets) {
+                        const sheetID = Object.keys(boosterSlots).find(sheetName =>
                               Object.keys(boosterSlots[sheetName]).includes(originalSheet)
                         );
-                        if(!sheetData[sheetID].cards[uuid]) {
+                        if (!sheetData[sheetID].cards[uuid]) {
                               sheetData[sheetID].cards[uuid] = 1;
                         } else {
                               sheetData[sheetID].cards[uuid] += 1;
                         }
-                        
+
                         sheetData[sheetID].totalWeight += 1;
                   }
             }
@@ -273,24 +273,24 @@ async function customPack(customSetID) {
 async function openPack() {
       let inputField = document.getElementById("setInput");
       let setID = inputField.value;
-            if(setID == "UNL") {
+      if (setID == "UNL") {
             customPack("UNL");
             return;
       }
-      if(!setDatabase.data.filter((item) => { return item.code == setID })[0]) {
+      if (!setDatabase.data.filter((item) => { return item.code == setID })[0]) {
             return;
       }
       cardDatabase = await getData(`https://mtgjson.com/api/v5/${setID}.json`);
-      if(!cardDatabase.data.booster) {
+      if (!cardDatabase.data.booster) {
             return;
       }
       let boosterInfo;
-      if("play" in cardDatabase.data.booster) {
+      if ("play" in cardDatabase.data.booster) {
             boosterInfo = cardDatabase.data.booster.play;
       } else {
             boosterInfo = cardDatabase.data.booster.draft;
       }
-      for(setCode of boosterInfo.sourceSetCodes) {
+      for (setCode of boosterInfo.sourceSetCodes) {
             let dataInfo = await getData(`https://mtgjson.com/api/v5/${setCode}.json`);
             altDatabases.push(dataInfo);
       }
@@ -305,10 +305,10 @@ async function openPack() {
       nextButton.style.display = `inline-block`;
       openButton.style.display = `none`;
       let remainingPacks = 0;
-      if(currentState == 0) {
+      if (currentState == 0) {
             addStaples();
             remainingPacks = cardDatabase.data.sealedProduct.filter((sealedInfo) => {
-                  if("play" in cardDatabase.data.booster) {
+                  if ("play" in cardDatabase.data.booster) {
                         return sealedInfo.subtype == "play" && sealedInfo.category == "booster_box";
                   } else {
                         return sealedInfo.subtype == "draft" && sealedInfo.category == "booster_box";
@@ -328,8 +328,8 @@ async function openPack() {
 
 function nextPack() {
       let packCount = document.getElementById("remainingPacks");
-      if(currentState != 2) {
-            if(packCount.innerText.replace(/\D/g, '') == 0) {
+      if (currentState != 2) {
+            if (packCount.innerText.replace(/\D/g, '') == 0) {
                   let buttonHolder = document.getElementById("packButtons");
                   buttonHolder.style.display = `none`;
                   return;
@@ -532,30 +532,50 @@ function generatePack() {
             accumulatedWeight += boosterInfo.weight;
       };
       for ([cardType, count] of Object.entries(boosterContents)) {
-            for (i = 0; i < count; i++) {
-                  let randomCardWeight = getRandomIntInclusive(1, boosterData.sheets[cardType].totalWeight);
-                  let accumulatedCardWeight = 0;
+            if (boosterData.sheets[cardType].fixed) {
                   for (let [uuid, weight] of Object.entries(boosterData.sheets[cardType].cards)) {
-                        if (randomCardWeight <= accumulatedCardWeight + weight) {
-                              let cardData;
-                              for(setData of altDatabases) {
-                                    let potentialData = setData.data.cards.filter((card) => {
-                                          return card.uuid == uuid;
-                                    })[0];
-                                    if(potentialData) {
-                                          cardData = potentialData;
-                                    }
+                        let cardData;
+                        for (setData of altDatabases) {
+                              let potentialData = setData.data.cards.filter((card) => {
+                                    return card.uuid == uuid;
+                              })[0];
+                              if (potentialData) {
+                                    cardData = potentialData;
                               }
-                              boosterCards.push(
-                                    {
-                                          "data": cardData,
-                                          "boosterSlot": cardType
-                                    }
-                              );
-                              break;
                         }
-                        accumulatedCardWeight += weight;
-                  };
+                        boosterCards.push(
+                              {
+                                    "data": cardData,
+                                    "boosterSlot": cardType
+                              }
+                        );
+                  }
+            } else {
+                  for (i = 0; i < count; i++) {
+                        let randomCardWeight = getRandomIntInclusive(1, boosterData.sheets[cardType].totalWeight);
+                        let accumulatedCardWeight = 0;
+                        for (let [uuid, weight] of Object.entries(boosterData.sheets[cardType].cards)) {
+                              if (randomCardWeight <= accumulatedCardWeight + weight) {
+                                    let cardData;
+                                    for (setData of altDatabases) {
+                                          let potentialData = setData.data.cards.filter((card) => {
+                                                return card.uuid == uuid;
+                                          })[0];
+                                          if (potentialData) {
+                                                cardData = potentialData;
+                                          }
+                                    }
+                                    boosterCards.push(
+                                          {
+                                                "data": cardData,
+                                                "boosterSlot": cardType
+                                          }
+                                    );
+                                    break;
+                              }
+                              accumulatedCardWeight += weight;
+                        };
+                  }
             }
       }
       return boosterCards;
